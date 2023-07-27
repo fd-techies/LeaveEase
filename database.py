@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 
 
 # Load the environment variables
-load_dotenv(".env")
-DETA_KEY = os.getenv("DETA_KEY")
-# DETA_KEY = st.secrets["DETA_KEY"]
+# load_dotenv(".env")
+# DETA_KEY = os.getenv("DETA_KEY")
+DETA_KEY = st.secrets["DETA_KEY"]
 
 # Initialize with a project key
 deta = Deta(DETA_KEY)
