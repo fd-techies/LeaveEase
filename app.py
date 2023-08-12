@@ -31,7 +31,7 @@ months = list(calendar.month_name[1:])
 # --- INPUT & SAVE PERIODS (Leave Application) ---
 if selected == "Leave Application":
     with st.form("leave_application", clear_on_submit=True):
-        st.write(st.secrets["users"])
+        st.write(st.secrets[["users"]])
         col1, col2 = st.columns(2)
         col1.text_input(label="Create new username", key="username")
         col2.text_input(label="Create new password (do not user personal sensitive password)", key="password")
