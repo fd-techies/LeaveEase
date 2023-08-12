@@ -15,11 +15,11 @@ class Users:
            self.deta = Deta(st.secrets["DETA_KEY"])
         
 
-    def addUser(self, username: str, password: str):
+    def addUser(self, username: str, numberOfLeave: int):
         #     """Returns the report on a successful creation, otherwise raises an error"""
         db = self.deta.Base("users")
-        return db.put({"username": username, "password": password})
+        return db.put({"username": username, "numberOfLeave": numberOfLeave})
     
 if __name__=="__main__":
     users = Users(local=True)
-    users.addUser(username = "Elwin", password = "1234")
+    users.addUser(username = "Elwin", numberOfLeave = 12)
