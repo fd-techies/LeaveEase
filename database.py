@@ -15,11 +15,32 @@ class Users:
            self.deta = Deta(st.secrets["DETA_KEY"])
         
 
-    def addUser(self, username: str, numberOfLeave: int):
+    def addUser(self, username: str, password: str, noOfVacationLeave: int, noOfOffInLieu: list):
         #     """Returns the report on a successful creation, otherwise raises an error"""
         db = self.deta.Base("users")
-        return db.put({"username": username, "numberOfLeave": numberOfLeave})
+        return db.put({"username": username, "password": password, "noOfVacationLeave": noOfVacationLeave, "noOfOffInLieu": noOfOffInLieu})
+    
+    def getAllUsers(self):
+        db = self.deta.Base("users")
+        return db.fetch().items
+    
+    def matchUsernamePassword(self, username: str, password: str):
+        db = self.deta.Base("users")
+        all_users = db.fetch().items
+        message = "Logged in as {}".format(username)
+        success = True
+        try:
+            user = [user for user in all_users if user['username']==username][0]
+        except:
+            message = "Please Sign Up first"
+            success = False
+            return message, success
+        if user["password"]!=password:
+            message = "Wrong Password!"
+            success = False
+        return message, success
+
     
 if __name__=="__main__":
     users = Users(local=True)
-    users.addUser(username = "Elwin", numberOfLeave = 12)
+    print(users.getAllUsers())
