@@ -1,10 +1,12 @@
 import streamlit as st
-from database import Users
+from database import Users, publicHolidays, leaveApplications
+from datetime import datetime, date  # Core Python Module
 from streamlit_option_menu import option_menu  # pip install streamlit-option-menu
+from views import vacation_leave
 
 
 
-def main():
+def main(local_toggle: bool):
     # -------------- SETTINGS --------------
     page_title = "LeaveEase"
     page_icon = ":luggage:"  # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
@@ -16,52 +18,56 @@ def main():
     menu = ["Login","Sign Up"]
     choice = st.sidebar.selectbox("Menu",menu)
 
+    # --- NAVIGATION MENU ---
+    
+
     if choice == "Login":
         username = st.sidebar.text_input("Username")
         password = st.sidebar.text_input("Password",type="password")
-        if st.sidebar.button("Login"):
-            users = Users(local=False)
+        login = st.sidebar.button("Login")
+        if "load_state" not in st.session_state:
+            st.session_state.load_state = False
+        if login or st.session_state.load_state:
+            st.session_state.load_state = True
+            users = Users(local=local_toggle)
             message, success = users.matchUsernamePassword(username,password)
             if success:
-                st.sidebar.success(message)
-                # --- NAVIGATION MENU ---
-                selected = option_menu(
-                    menu_title=None,
-                    options=["Leave Application", "Leave Deletion", "Overseas Checker"],
-                    icons=["calendar-event", "calendar-x", "calendar-check"],  # https://icons.getbootstrap.com/
-                    orientation="horizontal",
-                )
-                if selected == "Leave Application":
-                    with st.form("leave_application", clear_on_submit=True):
-                        col1, col2 = st.columns(2)
-                        col1.date_input(label="Vacation Start Date", key="startDate")
-                        col2.date_input(label="Vacation End Date", key="endDate")
-                        submitted = st.form_submit_button("Apply Leave")
+                vacation_leave.createPage(username)
+                
+                # st.sidebar.success(message)
+
             else:
                 st.sidebar.error(message)
 
     elif choice == "Sign Up":
-        st.subheader("Create New Account")
-        st.text_input("New Username", key="username")
-        st.text_input("New Password",type="password", key="password")
-        st.number_input("Input number of vacation leave left", step=1, key="vacation")
-        st.multiselect("Please select Off in Lieu", ["Hari Raya Haji","National Day"], key="offInLieu")
-        addUser = st.button("Register")
-        if addUser:
-            users = Users(local=False)
-            newUsername = str(st.session_state["username"])
-            newPassword = str(st.session_state["password"])
-            vacationLeave = int(st.session_state["vacation"])
-            offInLieu = st.session_state["offInLieu"]
-            try:
-                users.addUser(username = newUsername, password = newPassword, noOfVacationLeave = vacationLeave, noOfOffInLieu = offInLieu)
-                st.success("Account has been successfuly created")
-            except:
-                errorMessage = RuntimeError('This is an exception of type RuntimeError')
-                st.exception(errorMessage)
+        with st.form("sign_up", clear_on_submit=True):
+            st.subheader("Create New Account")
+            st.selectbox("Select Team", ["A","B","C","D"], key="team")
+            st.selectbox("Select Division", ["OC","FM","MCS","VCS","G","J","L"], key="division")
+            st.text_input("New Username", key="username")
+            st.text_input("New Password",type="password", key="password")
+            st.number_input("Input number of vacation leave left", step=0.5, key="vacation")
+            phList = publicHolidays(local=local_toggle).getAllPublicHolidayName()[:-1]
+            st.multiselect("Please select Off in Lieu", phList, key="offInLieu")
+            addUser = st.form_submit_button("Register")
+            if addUser:
+                users = Users(local=local_toggle)
+                newTeam = str(st.session_state["team"])
+                newDivision = str(st.session_state["division"])
+                newUsername = str(st.session_state["username"])
+                newPassword = str(st.session_state["password"])
+                vacationLeave = int(st.session_state["vacation"])
+                offInLieu = st.session_state["offInLieu"]
+                message, success = users.addUser(team = newTeam, division = newDivision, username = newUsername, password = newPassword, noOfVacationLeave = vacationLeave, noOfOffInLieu = offInLieu)
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
+
+    return True
     
 
 
 
 if __name__=="__main__":
-    main()
+    main(local_toggle=True)
