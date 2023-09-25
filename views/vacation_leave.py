@@ -35,8 +35,8 @@ def createPage(username: str):
 
         #Show applied leaves
         leave_df = pd.DataFrame(applications.getUserApplication(username),columns=['name','type','start','end'])
-        leave_df['selectbox'] = [False]*len(leave_df)
         # st.dataframe(leave_df, hide_index=True, use_container_width=True)
-        st.data_editor(leave_df, column_config={"selectbox": st.column_config.CheckboxColumn("Delete", help="Check to delete", default=False)}, hide_index=True, use_container_width=True)
+        editted_leave = st.data_editor(leave_df, num_rows= "dynamic", use_container_width=True).to_dict('records')
+        editted_leave = editted_leave.to_dict('records')
 
     return True
