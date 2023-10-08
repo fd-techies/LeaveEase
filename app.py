@@ -2,6 +2,8 @@ import streamlit as st
 from database import Users, publicHolidays, leaveApplications
 from datetime import datetime, date  # Core Python Module
 from streamlit_option_menu import option_menu  # pip install streamlit-option-menu
+from streamlit_calendar import calendar
+from config import calendar_options, calendar_events
 from views import vacation_leave
 
 
@@ -32,7 +34,8 @@ def main(local_toggle: bool):
             users = Users(local=local_toggle)
             message, success = users.matchUsernamePassword(username,password)
             if success:
-                vacation_leave.createPage(username)
+                leave_calendar_dict = vacation_leave.createPage(username, local_toggle)
+                calendar(events=leave_calendar_dict, options=calendar_options)
                 
                 # st.sidebar.success(message)
 
@@ -70,4 +73,4 @@ def main(local_toggle: bool):
 
 
 if __name__=="__main__":
-    main(local_toggle=True)
+    main(local_toggle=False)

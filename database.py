@@ -1,6 +1,7 @@
 import os
 
 import streamlit as st  # pip install streamlit
+import pandas as pd
 from deta import Deta  # pip install deta
 from dotenv import load_dotenv
 from datetime import datetime
@@ -76,9 +77,19 @@ class leaveApplications:
         for application in allApplications:
             if application['name'] == name:
                 userApplications.append(application)
+                # db.delete(application['key'])
         return sorted(userApplications, key=lambda d: datetime.strptime(d['start'], '%Y-%m-%d').date())
     
-    def addUserApplication(self, name: str, start: datetime.date, end: datetime.date):
+    def deleteKeyApplication(self, key: str):
+        #     """Delete leave application by key"""
+        db = self.deta.Base("leaveApplications")
+        allApplications = db.fetch().items
+        for application in allApplications:
+            if application['key'] == key:
+                db.delete(application['key'])
+        return
+    
+    def addUserApplication(self, name: str, start: datetime.date, end: datetime.date, type:str):
         #     """Add non-overlapping leave to the database"""
         db = self.deta.Base("leaveApplications")
         all_leaves = self.getUserApplication(name)
@@ -86,15 +97,15 @@ class leaveApplications:
         for leave in all_leaves:
             leave_start = datetime.strptime(leave['start'], '%Y-%m-%d').date()
             leave_end = datetime.strptime(leave['end'], '%Y-%m-%d').date()
-            if (start < leave_start) and (end < leave_start):
+            if (start < pd.Timestamp(leave_start)) and (end < pd.Timestamp(leave_start)):
                 continue
-            elif (start > leave_end) and (end > leave_end):
+            elif (start > pd.Timestamp(leave_end)) and (end > pd.Timestamp(leave_end)):
                 continue
             else:
                 message = 'Please delete overlapping leave before applying.'
                 success = False
                 return message, success
-        db.put({"name": name, "start": str(start), "end": str(end), "type": "Vacation"})
+        db.put({"name": name, "start": str(start.date()), "end": str(end.date()), "type": type})
         message = "Leave applied successfully"
         return message, success
     
@@ -121,4 +132,4 @@ class publicHolidays:
     
 if __name__=="__main__":
     applications = leaveApplications(local=True)
-    applications.addUserApplication(name="Elwin", start = "2024-03-03", end = "2024-03-04")
+    applications.addUserApplication(name="Elwin", start = datetime.now(), end = datetime.now(), type = 'Vacation Leave')
